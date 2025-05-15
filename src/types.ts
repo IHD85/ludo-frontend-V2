@@ -3,6 +3,7 @@
 export interface PieceDto {
     id: number;
     position: number;
+    absolutePosition?: number | null;
   }
   
   export interface PlayerDto {
