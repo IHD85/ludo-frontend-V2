@@ -8,8 +8,45 @@ interface BoardProps {
   validMoves?: number[];
   currentPlayer: number;
 }
+interface PlayerStartConfig {
+  id: number;
+  color: 'red' | 'green' | 'yellow' | 'blue';
+  boardStartIndex: number;
+  startCell: { x: number; y: number };
+}
+
+
 
 const GRID_SIZE = 15;
+
+const playerStartConfig: PlayerStartConfig[] = [
+  {
+    id: 0,
+    color: 'red',
+    boardStartIndex: 0,
+    startCell: { x: 6, y: 4 },
+  },
+  {
+    id: 1,
+    color: 'green',
+    boardStartIndex: 13,
+    startCell: { x: 10, y: 6 },
+  },
+  {
+    id: 2,
+    color: 'yellow',
+    boardStartIndex: 26,
+    startCell: { x: 8, y: 10 },
+  },
+  {
+    id: 3,
+    color: 'blue',
+    boardStartIndex: 39,
+    startCell: { x: 4, y: 8 },
+  },
+];
+
+
 
 export const Board: React.FC<BoardProps> = ({
   players,
@@ -22,35 +59,39 @@ export const Board: React.FC<BoardProps> = ({
   };
 
   const getPieceAt = (x: number, y: number) => {
-    for (const player of players) {
-      for (const piece of player.pieces) {
-        const pos = piece.position;
+  for (const player of players) {
+    for (const piece of player.pieces) {
+      const pos = piece.position;
 
-        if (pos === -1) {
-          const home = getHomeCoordinates(player.id, piece.id);
-          if (home.x === x && home.y === y) {
-            return { ...piece, color: player.color, playerId: player.id };
-          }
+      // HJEM-ZONE
+      if (pos === -1) {
+        const home = getHomeCoordinates(player.id, piece.id);
+        if (home.x === x && home.y === y) {
+          return { ...piece, color: player.color, playerId: player.id };
         }
+      }
 
-        if (pos >= 100) {
-          const goal = getGoalCoordinates(player.id, piece.id);
-          if (goal.x === x && goal.y === y) {
-            return { ...piece, color: player.color, playerId: player.id };
-          }
+      // MÅL-ZONE
+      if (pos >= 100) {
+        const goal = getGoalCoordinates(player.id, piece.id);
+        if (goal.x === x && goal.y === y) {
+          return { ...piece, color: player.color, playerId: player.id };
         }
+      }
 
-        if (pos >= 0 && pos < 52) {
-          const absPos = getAbsoluteBoardPosition(player.id, pos);
-          const coord = getCoordinatesFromAbsolutePosition(absPos);
-          if (coord.x === x && coord.y === y) {
-            return { ...piece, color: player.color, playerId: player.id };
-          }
+      // HOVEDRUTE (0-51)
+      if (pos >= 0 && pos < 52) {
+        const absPos = getAbsoluteBoardPosition(player.id, pos);
+        const coord = getCoordinatesFromAbsolutePosition(absPos);
+        if (coord.x === x && coord.y === y) {
+          return { ...piece, color: player.color, playerId: player.id };
         }
       }
     }
-    return null;
-  };
+  }
+  return null;
+};
+
 
   const getBackgroundColor = (x: number, y: number) => {
     if ((x >= 0 && x <= 5) && (y >= 0 && y <= 5)) return '#f44336'; // Rød område
@@ -60,12 +101,8 @@ export const Board: React.FC<BoardProps> = ({
     return '#e0e0e0';
   };
 
-  const startCells = [
-    { x: 1, y: 6, color: 'red' },
-    { x: 8, y: 1, color: 'green' },
-    { x: 13, y: 8, color: 'yellow' },
-    { x: 6, y: 13, color: 'blue' },
-  ];
+  
+
 
   return (
     <div
@@ -117,12 +154,22 @@ export const Board: React.FC<BoardProps> = ({
             )}
 
             {!piece && (() => {
-              const start = startCells.find(c => c.x === x && c.y === y);
+              const start = playerStartConfig.find(p => p.startCell.x === x && p.startCell.y === y);
               if (start) {
                 return (
-                  <span style={{ color: start.color, fontSize: '1.2rem', fontWeight: 'bold' }}>★</span>
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      border: `2px dashed ${start.color}`,
+                      opacity: 0.4,
+                    }}
+                  />
                 );
               }
+
+
 
               const entry = entryToGoalCells.find(c => c.x === x && c.y === y);
               if (entry) {
@@ -238,25 +285,22 @@ const getCoordinatesFromAbsolutePosition = (absPos: number): { x: number, y: num
     { x: 6, y: 0 }, { x: 7, y: 0 }, { x: 8, y: 0 }, { x: 8, y: 1 }, { x: 8, y: 2 },
     { x: 8, y: 3 }, { x: 8, y: 4 }, { x: 8, y: 5 }, { x: 9, y: 6 }, { x: 10, y: 6 },
     { x: 11, y: 6 }, { x: 12, y: 6 }, { x: 13, y: 6 }, { x: 14, y: 6 }, { x: 14, y: 7 },
-    { x: 13, y: 7 }, { x: 12, y: 7 }, { x: 11, y: 7 }, { x: 10, y: 7 }, { x: 9, y: 7 },
-    { x: 8, y: 7 }, { x: 8, y: 8 }, { x: 8, y: 9 }, { x: 8, y: 10 }, { x: 8, y: 11 },
+    { x: 14, y: 8 }, { x: 13, y: 8 }, { x: 12, y: 8 }, { x: 11, y: 8 }, { x: 10, y: 8 },
+    { x: 9, y: 8 }, { x: 8, y: 9 }, { x: 8, y: 10 }, { x: 8, y: 11 },
     { x: 8, y: 12 }, { x: 8, y: 13 }, { x: 8, y: 14 }, { x: 7, y: 14 }, { x: 6, y: 14 },
     { x: 6, y: 13 }, { x: 6, y: 12 }, { x: 6, y: 11 }, { x: 6, y: 10 }, { x: 6, y: 9 },
-    { x: 6, y: 8 }, { x: 5, y: 8 }, { x: 4, y: 8 }, { x: 3, y: 8 }, { x: 2, y: 8 },
+    { x: 5, y: 8 }, { x: 4, y: 8 }, { x: 3, y: 8 }, { x: 2, y: 8 },
     { x: 1, y: 8 }, { x: 0, y: 8 }, { x: 0, y: 7 }
   ];
   return path[absPos % 52];
 };
 
 const getAbsoluteBoardPosition = (playerId: number, relativePos: number): number => {
-  const startIndices: Record<number, number> = {
-    0: 0,    // Rød
-    1: 13,   // Grøn
-    2: 26,   // Gul
-    3: 39,   // Blå
-  };
-  return (startIndices[playerId] + relativePos) % 52;
+  const config = playerStartConfig.find(p => p.id === playerId);
+  if (!config) throw new Error("Invalid player ID");
+  return (config.boardStartIndex + relativePos) % 52;
 };
+
 
 const getGoalCoordinates = (playerId: number, pieceId: number): { x: number, y: number } => {
   switch (playerId) {
@@ -271,9 +315,9 @@ const getGoalCoordinates = (playerId: number, pieceId: number): { x: number, y: 
 const getHomeCoordinates = (playerId: number, pieceId: number): { x: number, y: number } => {
   switch (playerId) {
     case 0: return { x: 2 + (pieceId % 2), y: 2 + Math.floor(pieceId / 2) }; // Rød
-    case 1: return { x: 12 - (pieceId % 2), y: 2 + Math.floor(pieceId / 2) }; // Grøn
-    case 2: return { x: 12 - (pieceId % 2), y: 12 - Math.floor(pieceId / 2) }; // Gul
-    case 3: return { x: 2 + (pieceId % 2), y: 12 - Math.floor(pieceId / 2) }; // Blå
+    case 1: return { x: 11 + (pieceId % 2), y: 2 + Math.floor(pieceId / 2) }; // Grøn
+    case 2: return { x: 11 + (pieceId % 2), y: 11 + Math.floor(pieceId / 2) }; // Gul
+    case 3: return { x: 2 + (pieceId % 2), y: 11 + Math.floor(pieceId / 2) }; // Blå
     default: return { x: -1, y: -1 };
   }
 };
